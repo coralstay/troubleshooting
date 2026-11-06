@@ -1,4 +1,14 @@
 #!/usr/bin/env python3
+# ---
+# title: secretive_repro
+# description: Secretive 에이전트의 short read("communication with agent failed")를 재현하고 수신 측 재조립으로 사라지는지 확인하는 스크립트
+# authors: [coralstay]
+# license: AGPL-3.0-only
+# status: draft
+# task: TASK-1
+# created_date: '2026-11-06'
+# updated_date: '2026-11-06'
+# ---
 """Reproduce "communication with agent failed" from Secretive, and check that
 receiver-side reassembly removes it.
 

@@ -1,14 +1,24 @@
-/*
- * framing_demo.c - SSH agent style framing (uint32 big-endian length + body)
- * over an AF_UNIX SOCK_STREAM socket.
- *
- * Sends the same client byte patterns to two servers:
- *   buggy_serve(): treats one read() as one message (what Secretive 4.0.0 does)
- *   fixed_serve(): accumulates bytes, extracts every complete message,
- *                  keeps the remainder, caps the length (what OpenSSH ssh-agent does)
- *
- * Build and run:  cc -Wall -Wextra -O2 -o framing_demo framing_demo.c && ./framing_demo
- */
+// ---
+// title: framing_demo
+// description: 같은 클라이언트 바이트 패턴을 read() 한 번을 메시지 하나로 보는 서버와 재조립하는 서버에 보내 short read 결함을 보여 주는 데모
+// authors: [coralstay]
+// license: AGPL-3.0-only
+// status: draft
+// task: TASK-1
+// created_date: '2026-11-06'
+// updated_date: '2026-11-06'
+// ---
+// [설계 메모]
+// framing_demo.c - SSH agent style framing (uint32 big-endian length + body)
+// over an AF_UNIX SOCK_STREAM socket.
+//
+// Sends the same client byte patterns to two servers:
+//   buggy_serve(): treats one read() as one message (what Secretive 4.0.0 does)
+//   fixed_serve(): accumulates bytes, extracts every complete message,
+//                  keeps the remainder, caps the length (what OpenSSH ssh-agent does)
+//
+// Build and run:  cc -Wall -Wextra -O2 -o framing_demo framing_demo.c && ./framing_demo
+
 #include <arpa/inet.h>
 #include <errno.h>
 #include <pthread.h>
