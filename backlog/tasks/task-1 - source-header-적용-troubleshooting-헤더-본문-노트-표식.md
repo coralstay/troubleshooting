@@ -1,7 +1,7 @@
 ---
-id: DRAFT-1
+id: TASK-1
 title: 'source-header 적용: troubleshooting (헤더 + 본문 노트 표식)'
-status: Draft
+status: To Do
 assignee: []
 created_date: '2026-11-06T11:57:00Z'
 updated_date: '2026-11-06T12:00:00Z'
