@@ -1,10 +1,10 @@
 ---
 id: TASK-1
 title: 'source-header 적용: troubleshooting (헤더 + 본문 노트 표식)'
-status: To Do
+status: In Progress
 assignee: []
 created_date: '2026-11-06T11:57:00Z'
-updated_date: '2026-11-06T12:11:00Z'
+updated_date: '2026-11-06T12:12:00Z'
 labels:
   - source-header
   - rollout
