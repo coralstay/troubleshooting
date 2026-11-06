@@ -1,7 +1,7 @@
 ---
 id: TASK-1
 title: 'source-header 적용: troubleshooting (헤더 + 본문 노트 표식)'
-status: In Progress
+status: Done
 assignee: []
 created_date: '2026-11-06T11:57:00Z'
 updated_date: '2026-11-06T13:23:00Z'
