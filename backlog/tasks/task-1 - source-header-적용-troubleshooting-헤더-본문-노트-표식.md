@@ -4,7 +4,7 @@ title: 'source-header 적용: troubleshooting (헤더 + 본문 노트 표식)'
 status: In Progress
 assignee: []
 created_date: '2026-11-06T11:57:00Z'
-updated_date: '2026-11-06T12:12:00Z'
+updated_date: '2026-11-06T13:23:00Z'
 labels:
   - source-header
   - rollout
@@ -43,18 +43,18 @@ LICENSE는 이미 AGPL-3.0. 헤더 license는 AGPL-3.0-only.
 
 ## Acceptance Criteria
 <!-- AC:BEGIN -->
-- [ ] #1 .mailmap(전역 ~/.mailmap과 같은 매핑)을 저장소에 커밋해 다른 클론·CI에서도 authors가 coralstay로 나온다
-- [ ] #2 라이선스 조치를 마친다: 이미 AGPL-3.0, 헤더 license는 AGPL-3.0-only로 표기 확인
-- [ ] #3 .source-header.json을 확정하고(제외 대상 재확인) source-header init으로 헤더를 넣고, 서브에이전트가 description 초안을 쓴다. source-header lint 오류 0
-- [ ] #4 규격(source-header README '본문 노트 표식', TASK-23)에 따라 중요한 지점(진입점·불변식·비자명한 결정·외부 연동)의 줄 끝에 '---- N' 표식을 달고 파일 맨 아래 노트 구역에 설명을 쓴다. 이미 있는 주석은 변환 규칙(B4)으로 새 포맷에 옮기고 정보를 버리지 않는다. 번호는 파일마다 1부터 연속, 표식:노트 1:1. 주석·헤더 외 코드 줄은 바뀌지 않는다
+- [x] #1 .mailmap(전역 ~/.mailmap과 같은 매핑)을 저장소에 커밋해 다른 클론·CI에서도 authors가 coralstay로 나온다
+- [x] #2 라이선스 조치를 마친다: 이미 AGPL-3.0, 헤더 license는 AGPL-3.0-only로 표기 확인
+- [x] #3 .source-header.json을 확정하고(제외 대상 재확인) source-header init으로 헤더를 넣고, 서브에이전트가 description 초안을 쓴다. source-header lint 오류 0
+- [x] #4 규격(source-header README '본문 노트 표식', TASK-23)에 따라 중요한 지점(진입점·불변식·비자명한 결정·외부 연동)의 줄 끝에 '---- N' 표식을 달고 파일 맨 아래 노트 구역에 설명을 쓴다. 이미 있는 주석은 변환 규칙(B4)으로 새 포맷에 옮기고 정보를 버리지 않는다. 번호는 파일마다 1부터 연속, 표식:노트 1:1. 주석·헤더 외 코드 줄은 바뀌지 않는다
 <!-- AC:END -->
 
 ## Definition of Done
 <!-- DOD:BEGIN -->
-- [ ] #1 source-header lint . 오류 0 (출력을 Implementation Notes에 첨부)
-- [ ] #2 저장소의 기존 테스트·빌드가 헤더 추가 후에도 통과
-- [ ] #3 유저가 description diff를 검토
-- [ ] #4 표식 번호가 파일마다 1부터 연속이고 표식:노트가 1:1임을 확인한 출력과, git diff에 주석·헤더 외 변경이 없음을 확인한 결과를 Implementation Notes에 첨부했다
+- [x] #1 source-header lint . 오류 0 (출력을 Implementation Notes에 첨부)
+- [x] #2 저장소의 기존 테스트·빌드가 헤더 추가 후에도 통과
+- [x] #3 유저가 description diff를 검토
+- [x] #4 표식 번호가 파일마다 1부터 연속이고 표식:노트가 1:1임을 확인한 출력과, git diff에 주석·헤더 외 변경이 없음을 확인한 결과를 Implementation Notes에 첨부했다
 <!-- DOD:END -->
 
 ## Implementation Plan
@@ -81,4 +81,14 @@ LICENSE는 이미 AGPL-3.0. 헤더 license는 AGPL-3.0-only.
 
 <!-- SECTION:NOTES:BEGIN -->
 2026-11-06 유저 결정: AC '.githooks 설치(--plugins source-header)'는 후속 draft(source-header DRAFT-7, GF-149 이후)로 분리했다. 이 카드의 AC 번호가 이에 맞춰 당겨졌다(표식 AC 번호 -1).
+
+2026-11-06 구현·검증 기록 (브랜치 task/TASK-1, 커밋 a9a77fd 4a866f0 fa4c1a2)
+- AC #1: .mailmap은 전역 ~/.mailmap과 같다(주석뿐, 매핑 없음). git log 작성자는 이미 coralstay.
+- AC #2: LICENSE는 AGPL-3.0, README는 AGPL-3.0-only, 두 헤더 license는 AGPL-3.0-only.
+- AC #3: .source-header.json은 카드 초안 그대로. 두 소스에 헤더와 한 줄 description. lint --strict . exit 0(직접 실행).
+- AC #4: secretive_repro.py 표식 7·노트 7, framing_demo.c 표식 9·노트 9. 번호 1..N 연속, 1:1(직접 확인).
+- DoD #2/#4 증거(직접 확인): .py ast.dump가 변경 전과 같다. C 파일은 변경 전후 cc -Wall -Wextra -O2 -c 오브젝트 파일이 cmp로 바이트 동일. 이 저장소에는 별도 테스트·빌드가 없다. framing_demo.c를 별도 위치에 빌드해 실행한 결과가 문서와 맞는다고 서브에이전트가 보고(secretive_repro.py는 실제 Secretive 키가 필요해 실행하지 않았다).
+- DoD #3: 유저가 description 286개(8개 저장소) 중 무작위 20개를 샘플 검토하고 '그래도 모두 남겨'라고 결정했다.
+- troubleshooting-1.md의 미커밋 수정은 이 카드와 무관하며 건드리지 않았다(여전히 미스테이지).
+- AC '.githooks 설치'는 유저 결정으로 후속 draft(source-header DRAFT-7, GF-149 이후)로 분리했다.
 <!-- SECTION:NOTES:END -->
