@@ -92,3 +92,9 @@ LICENSE는 이미 AGPL-3.0. 헤더 license는 AGPL-3.0-only.
 - troubleshooting-1.md의 미커밋 수정은 이 카드와 무관하며 건드리지 않았다(여전히 미스테이지).
 - AC '.githooks 설치'는 유저 결정으로 후속 draft(source-header DRAFT-7, GF-149 이후)로 분리했다.
 <!-- SECTION:NOTES:END -->
+
+## Final Summary
+
+<!-- SECTION:FINAL_SUMMARY:BEGIN -->
+troubleshooting의 두 소스(secretive_repro.py, framing_demo.c)에 source-header 헤더(AGPL-3.0-only, 한 줄 description)와 본문 노트 표식(7·9)을 적용했다. py의 ast.dump와 C 오브젝트 파일이 변경 전과 같아 코드는 바뀌지 않았다. lint --strict 0 오류, 표식:노트 1:1 연속. 사용자의 미커밋 troubleshooting-1.md는 건드리지 않았다. .githooks 설치는 GF-149 이후 후속 draft로 분리. 커밋 a9a77fd 4a866f0 fa4c1a2 (브랜치 task/TASK-1).
+<!-- SECTION:FINAL_SUMMARY:END -->
