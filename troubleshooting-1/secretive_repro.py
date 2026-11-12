@@ -1,4 +1,14 @@
 #!/usr/bin/env python3
+# ---
+# title: secretive_repro
+# description: Secretive 에이전트의 short read("communication with agent failed")를 재현하고 수신 측 재조립으로 사라지는지 확인하는 스크립트
+# authors: [coralstay]
+# license: AGPL-3.0-only
+# status: draft
+# task: TASK-1
+# created_date: '2026-11-06'
+# updated_date: '2026-11-06'
+# ---
 """Reproduce "communication with agent failed" from Secretive, and check that
 receiver-side reassembly removes it.
 
@@ -177,9 +187,9 @@ def split_client_to_agent(client, agent, delay):
             body = recv_exact(client, struct.unpack(">I", header)[0])
             if body is None:
                 break
-            agent.sendall(header)
+            agent.sendall(header)  # ---- 1
             time.sleep(delay)
-            agent.sendall(body)
+            agent.sendall(body)  # ---- 2
     except OSError:
         pass
     finally:
@@ -298,14 +308,13 @@ def main():
     print(f"gap: {args.delay}s")
 
     procs = []
-    # short directory: sun_path is limited to 104 bytes on macOS
-    with tempfile.TemporaryDirectory(prefix="sr-", dir="/tmp") as tmp:
+    with tempfile.TemporaryDirectory(prefix="sr-", dir="/tmp") as tmp:  # ---- 3
         try:
             relay_bin = os.path.join(tmp, "reassemble")
             src = os.path.join(tmp, "reassemble.c")
             with open(src, "w") as f:
                 f.write(REASSEMBLE_C)
-            subprocess.run(["cc", "-O2", "-o", relay_bin, src], check=True)
+            subprocess.run(["cc", "-O2", "-o", relay_bin, src], check=True)  # ---- 4
 
             fix = os.path.join(tmp, "fix.sock")
             procs.append(subprocess.Popen([relay_bin, fix, args.agent]))
@@ -316,8 +325,8 @@ def main():
 
             print("\nsequential signs")
             sequential("direct", args.agent, pubkey, tmp, args.runs)
-            sequential("split", split_direct, pubkey, tmp, args.runs)
-            sequential("split + reassemble", split_fixed, pubkey, tmp, args.runs)
+            sequential("split", split_direct, pubkey, tmp, args.runs)  # ---- 5
+            sequential("split + reassemble", split_fixed, pubkey, tmp, args.runs)  # ---- 6
 
             print(f"\nload: {args.concurrency} concurrent signs x {args.rounds} rounds, no artificial gap")
             concurrent_signs("direct", args.agent, pubkey, tmp, args.concurrency, args.rounds)
@@ -337,7 +346,7 @@ def main():
             subprocess.run(["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", key], check=True)
             subprocess.run(["ssh-add", "-q", key], env=dict(os.environ, SSH_AUTH_SOCK=agent_sock), check=True)
             split_ssh_agent = start_split_relay(os.path.join(tmp, "split-agent.sock"), agent_sock, args.delay)
-            sequential("split -> ssh-agent", split_ssh_agent, key + ".pub", tmp, args.runs)
+            sequential("split -> ssh-agent", split_ssh_agent, key + ".pub", tmp, args.runs)  # ---- 7
         finally:
             for p in procs:
                 p.terminate()
@@ -346,3 +355,28 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# ======== 노트 ========
+# 1 길이 4바이트를 먼저 따로 쓴다
+#   설명: 프레임의 길이(4바이트)만 먼저 sendall하고 delay만큼 쉰다. OpenSSH ssh-keygen이 요청을 length, body 두 번의 write로 보내는 것을 그대로 흉내 내며,
+#   받는 쪽 read가 길이만 읽고 돌아오게 만드는 것이 short read 재현의 방아쇠다.
+#   관련: troubleshooting-1.md, framing_demo.c
+#   개념: short read, 프레임(길이 접두 메시지)
+# 2 본문은 간격 뒤에 따로 쓴다
+#   설명: 1의 gap 뒤에 body를 별도 write로 보낸다. 릴레이는 클라이언트에서 프레임 전체를 먼저 받은 뒤(recv_exact) 쪼개 쓰므로 어떤 클라이언트로도 같은 분할이 나온다.
+# 3 소켓 경로를 /tmp 아래 짧게 둔다
+#   설명: 임시 디렉터리를 일부러 /tmp 아래 짧은 접두사(sr-)로 만든다. macOS에서 AF_UNIX의 sun_path는 104바이트로 제한되어, 긴 기본 임시 경로에서는 bind가 실패하기 때문이다.
+#   개념: sun_path 길이 제한
+# 4 재조립 릴레이를 실행 시점에 cc로 컴파일한다
+#   설명: REASSEMBLE_C 문자열(누적 -> 완성된 프레임만 한 번에 write -> 나머지 보존, 길이 상한 256KiB)을 임시 디렉터리에 쓰고 컴파일한다.
+#   문자열 안의 C 코드에는 줄 끝 표식을 달 수 없어(문자열 내용이 바뀐다) 같은 로직의 표식은 framing_demo.c의 fixed_serve(4~8)에 있다.
+#   설명: 수신 측 재조립이 결함을 없앤다는 주장의 근거이며, Secretive 패치가 아니라 기법을 보이는 테스트 하네스다.
+#   관련: framing_demo.c
+# 5 분할 릴레이 직결: 실패가 기대 결과
+#   설명: ssh-keygen -> 분할 릴레이 -> Secretive. 이 줄이 재현의 핵심 단언이며, Secretive의 short read 결함 때문에 "communication with agent failed"로 실패하는 것이 기대 결과다(문서 기준 매번 재현).
+#   관련: troubleshooting-1.md
+# 6 분할 + 재조립: 성공이 기대 결과
+#   설명: 같은 분할 릴레이 뒤에 재조립 릴레이를 두면 모든 서명이 성공해야 한다. 5와 6의 대비가 원인이 수신 측 프레이밍이라는 증거다.
+# 7 대조군: OpenSSH ssh-agent
+#   설명: 일회용 ed25519 키를 넣은 OpenSSH ssh-agent 앞에 같은 분할 릴레이를 두어 성공해야 한다. 분할 자체는 정상 에이전트가 견디는 입력임을 보여 주어, 실패가 릴레이가 아니라 Secretive의 결함임을 가른다.
